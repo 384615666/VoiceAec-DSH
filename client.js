@@ -343,39 +343,45 @@ window.__ModuleLoader__.load({
     const messages = {
       zh: {
         title: '回声消除',
-        on: '已开启，视频继续播放也没关系',
-        off: '已关闭：麦克风按浏览器默认方式录音',
-        unavailable: '当前系统不支持系统声音回采',
-        idle: '正在检查…',
-        armed: '已开启 · 点麦克风说话',
-        noVoiceInput: '语音输入未就绪',
-        starting: '正在启动参考声…',
-        ready: '参考声就绪',
-        silent: '参考声静默：请确认外放正在播放',
-        recording: '正在消除回声',
-        error: '回声消除启动失败，已回退浏览器降噪',
-        toggleOn: '开启后语音输入会减去外放的声音',
-        toggleOff: '点击重新开启',
-        armedHint: '已开启：点语音输入的麦克风后会自动消除外放回声',
-        noVoiceInputHint: '语音输入插件未生效：请在 Plugins 里启用 Voice input，或升级到与 Harness 相同的 0.2.1-rc.4（详见 docs/manual.md 附录 C）',
+        armed: '已开启',
+        off: '已关闭',
+        starting: '启动中',
+        ready: '已就绪',
+        silent: '参考声静默',
+        recording: '消除中',
+        unavailable: '系统不支持',
+        error: '启动失败',
+        noVoiceInput: '语音输入未启用',
+        armedHint: '已开启：点麦克风录音时会自动减去外放的声音。',
+        offHint: '已关闭：语音输入按浏览器默认方式处理。点击开启。',
+        startingHint: '正在启动系统声音回采，请稍候。',
+        readyHint: '系统声音回采正常，开始录音即可消除外放回声。',
+        silentHint: '回采已启动，但未检测到系统播放的声音。请确认视频正在外放且没有静音。',
+        recordingHint: '正在消除回声，括号内为当前回声抑制量。',
+        unavailableHint: '系统声音回采仅支持 macOS 14.4 及以上。',
+        errorHint: '回采启动失败，语音输入会退回浏览器默认处理。详见操作手册的故障排查。',
+        noVoiceInputHint: '未检测到可用的语音输入插件。点击打开 Plugins 页面启用或升级。',
       },
       en: {
         title: 'Echo cancel',
-        on: 'On — keep the video playing',
-        off: 'Off — browser microphone processing only',
-        unavailable: 'System audio capture is unavailable here',
-        idle: 'Checking…',
-        armed: 'On — click the microphone',
-        noVoiceInput: 'Voice input is not ready',
-        starting: 'Starting reference audio…',
-        ready: 'Reference ready',
-        silent: 'Reference silent — is playback audible?',
-        recording: 'Cancelling echo',
-        error: 'Echo cancellation failed; using browser processing',
-        toggleOn: 'Voice input subtracts loudspeaker audio while on',
-        toggleOff: 'Click to turn back on',
-        armedHint: 'On: echo is cancelled whenever voice input records',
-        noVoiceInputHint: 'Voice input plugin is not active: enable Voice input in Plugins, or update it to 0.2.1-rc.4 (see docs/manual.md, appendix C)',
+        armed: 'On',
+        off: 'Off',
+        starting: 'Starting',
+        ready: 'Ready',
+        silent: 'No reference',
+        recording: 'Cancelling',
+        unavailable: 'Unsupported',
+        error: 'Failed',
+        noVoiceInput: 'Voice input off',
+        armedHint: 'On: echo is removed whenever voice input records.',
+        offHint: 'Off: the microphone uses the browser default. Click to enable.',
+        startingHint: 'Starting the system audio reference, one moment.',
+        readyHint: 'The reference is live; recordings will cancel speaker echo.',
+        silentHint: 'The reference is running but no playback is audible. Check that the video is playing and unmuted.',
+        recordingHint: 'Cancelling echo; the value is the current suppression.',
+        unavailableHint: 'System audio capture requires macOS 14.4 or later.',
+        errorHint: 'Reference capture failed; voice input falls back to browser processing. See the manual.',
+        noVoiceInputHint: 'No active voice-input plugin. Click to open its Plugins page.',
       },
     }
 
@@ -696,7 +702,31 @@ registerProcessor('voiceaec-aec', VoiceAecProcessor)
 
     function label (phase) {
       if (!state.enabled) return t('off')
-      return t(phase)
+      switch (phase) {
+        case 'armed': return t('armed')
+        case 'starting': return t('starting')
+        case 'ready': return t('ready')
+        case 'silent': return t('silent')
+        case 'recording': return t('recording')
+        case 'unavailable': return t('unavailable')
+        case 'error': return t('error')
+        case 'noVoiceInput': return t('noVoiceInput')
+        default: return t('armed')
+      }
+    }
+
+    function hintFor (phase) {
+      switch (phase) {
+        case 'off': return t('offHint')
+        case 'starting': return t('startingHint')
+        case 'ready': return t('readyHint')
+        case 'silent': return t('silentHint')
+        case 'recording': return t('recordingHint')
+        case 'unavailable': return t('unavailableHint')
+        case 'error': return t('errorHint')
+        case 'noVoiceInput': return t('noVoiceInputHint')
+        default: return t('armedHint')
+      }
     }
 
     function reportClientError (error) {
@@ -723,18 +753,15 @@ registerProcessor('voiceaec-aec', VoiceAecProcessor)
 
     function renderPill (current) {
       const phase = current.enabled ? phaseKey() : 'off'
-      const colors = tone(phase)
+      const accent = tone(phase)
       const detail = phase === 'recording' ? `${Math.max(0, Math.round(current.erle))} dB` : ''
-      const status = phase === 'recording' ? t('recording') : label(phase)
-      const hint = phase === 'noVoiceInput'
-        ? t('noVoiceInputHint')
-        : phase === 'armed'
-          ? t('armedHint')
-          : state.enabled ? t('toggleOn') : t('toggleOff')
+      const status = label(phase)
+      const hint = hintFor(phase)
       return h('div', {
         style: {
-          display: 'flex', alignItems: 'center', gap: '6px', margin: '0 0 0 2px',
-          font: 'var(--dsw-font-caption, 11px/16px system-ui)', color: 'var(--dsw-alias-label-secondary)',
+          display: 'flex', alignItems: 'center', margin: '0 0 0 2px',
+          font: 'var(--dsw-font-caption, 11px/16px system-ui)',
+          color: 'var(--dsw-alias-label-secondary)',
           userSelect: 'none',
         },
       },
@@ -747,29 +774,31 @@ registerProcessor('voiceaec-aec', VoiceAecProcessor)
           }
           setEnabled(!state.enabled)
         },
-        title: phase === 'noVoiceInput' ? t('noVoiceInputHint') : hint,
+        title: hint,
         'aria-pressed': state.enabled,
+        'aria-label': `${t('title')} · ${status}`,
         style: {
           display: 'inline-flex', alignItems: 'center', gap: '6px',
-          padding: '2px 8px 2px 7px', height: '22px', borderRadius: '999px',
+          padding: '2px 9px 2px 8px', height: '22px', borderRadius: '999px',
           border: '1px solid var(--dsw-alias-border-l1)',
           background: 'var(--dsw-alias-bg-layer-1)',
           color: 'var(--dsw-alias-label-secondary)', cursor: 'pointer',
-          fontSize: '11px', lineHeight: '16px',
+          font: 'inherit', fontSize: '11px', lineHeight: '16px',
         },
       },
       h('span', {
         'aria-hidden': true,
         style: {
-          width: '6px', height: '6px', borderRadius: '50%', background: colors,
-          boxShadow: phase === 'recording' ? `0 0 0 3px color-mix(in srgb, ${colors} 22%, transparent)` : 'none',
+          width: '6px', height: '6px', borderRadius: '50%', background: accent,
+          boxShadow: phase === 'recording' || phase === 'ready'
+            ? `0 0 0 3px color-mix(in srgb, ${accent} 22%, transparent)`
+            : 'none',
         },
       }),
       h('span', null, t('title')),
-      phase === 'recording'
-        ? h('span', { style: { opacity: 0.75, fontVariantNumeric: 'tabular-nums' } }, detail)
-        : null),
-      h('span', { style: { opacity: 0.8 } }, status))
+      h('span', { 'aria-hidden': true, style: { opacity: 0.45 } }, '·'),
+      h('span', { style: { opacity: 0.85 } }, status),
+      detail ? h('span', { style: { opacity: 0.75, fontVariantNumeric: 'tabular-nums' } }, detail) : null))
     }
 
     return {

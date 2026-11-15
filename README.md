@@ -23,6 +23,15 @@
 
 没有虚拟声卡，不需要暂停视频，也不上传音频。
 
+## 兼容性
+
+| | |
+| --- | --- |
+| 插件版本 | 1.0.0 |
+| DeepSeek Harness | 桌面端 0.2.1-rc.4 |
+| 系统 | macOS 14.4 及以上 |
+| 前置插件 | `@deepseek-ai/dsh-experimental-voice-input-bundle`（与 Harness 同版本） |
+
 ```
  视频/音乐 ──► 扬声器 ──► 麦克风（串音）
     │                        │
@@ -45,8 +54,8 @@ Harness 的语音输入用的是浏览器麦克风。外放时，视频声会被
 **前提**
 
 - macOS 14.4 及以上的 DeepSeek Harness 桌面端；
-- 官方语音输入插件 `@deepseek-ai/dsh-experimental-voice-input-bundle` 已启用
-  （Plugins 面板里启用，并在插件详情里下载 SenseVoice 模型）。
+- 官方语音输入插件 `@deepseek-ai/dsh-experimental-voice-input-bundle` 已启用，且版本与
+  Harness 一致（0.2.1-rc.4）；在 Plugins 面板启用，并在插件详情里下载 SenseVoice 模型。
 
 **步骤**
 
@@ -164,7 +173,7 @@ node docs/aec-regression.mjs far.wav near.wav
 ## 与 VoiceAec 的关系
 
 VoiceAec 桌面版是「Windows + WASAPI 回采 + LocalVQE 神经网络 + VB-CABLE」的完整产品；
-这个插件是同一件事在 Harness 里的最小可用版本：
+这个插件把同一件事带进 Harness：
 
 - 回采：WASAPI loopback → Core Audio process tap；
 - 引擎：LocalVQE → 频域自适应滤波（本机零依赖，先跑通链路）；

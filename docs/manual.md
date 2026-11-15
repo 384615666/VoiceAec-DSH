@@ -2,7 +2,7 @@
 
 | | |
 | --- | --- |
-| 插件版本 | 0.1.0 |
+| 插件版本 | 1.0.0 |
 | 适用环境 | DeepSeek Harness 桌面端 0.2.1-rc.4 · macOS 14.4+ |
 | 前置插件 | `@deepseek-ai/dsh-experimental-voice-input-bundle`（官方语音输入） |
 | 仓库 | <https://github.com/384615666/VoiceAec-DSH> |
@@ -64,7 +64,8 @@ process tap），再在页面里用自适应滤波器把它从麦克风信号里
 1. **系统**：macOS 14.4 或更高（「关于本机」可看版本）。
 2. **Harness**：桌面端能正常打开会话、能看到输入框。
 3. **语音输入**：Plugins 里 `Voice input`（`dsh-experimental-voice-input-bundle`）已启用，
-   且 SenseVoice 模型已下载（插件详情里「Download and prepare」跑完）。
+   版本与 Harness 一致（0.2.1-rc.4），且 SenseVoice 模型已下载
+   （插件详情里「Download and prepare」跑完）。
    - 输入框里能看到麦克风图标 = 就绪。
    - 如果点了麦克风只弹「先配置语音输入」，说明模型还没准备好。
 4. **外放**：音箱/电视是系统默认输出设备，视频声从那里出来。

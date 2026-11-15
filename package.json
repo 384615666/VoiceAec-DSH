@@ -1,8 +1,25 @@
 {
   "name": "dsh-voiceaec",
-  "version": "0.1.0",
+  "version": "1.0.0",
+  "license": "MIT",
+  "author": "384615666",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/384615666/VoiceAec-DSH.git"
+  },
+  "homepage": "https://github.com/384615666/VoiceAec-DSH#readme",
+  "keywords": [
+    "deepseek-harness",
+    "dsh",
+    "echo-cancellation",
+    "aec",
+    "macos",
+    "voice-input",
+    "audioworklet",
+    "plugin"
+  ],
   "private": true,
-  "description": "VoiceAec echo cancellation for voice input: talk to DSH while a video keeps playing",
+  "description": "VoiceAec echo cancellation for DeepSeek Harness voice input: keep the video playing while you talk",
   "type": "module",
   "icon": "./icon.svg",
   "exports": {
