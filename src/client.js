@@ -30,7 +30,9 @@ window.__ModuleLoader__.load({
         on: '已开启，视频继续播放也没关系',
         off: '已关闭：麦克风按浏览器默认方式录音',
         unavailable: '当前系统不支持系统声音回采',
-        idle: '未在录音',
+        idle: '正在检查…',
+        armed: '已开启 · 点麦克风说话',
+        noVoiceInput: '语音输入未就绪',
         starting: '正在启动参考声…',
         ready: '参考声就绪',
         silent: '参考声静默：请确认外放正在播放',
@@ -38,13 +40,17 @@ window.__ModuleLoader__.load({
         error: '回声消除启动失败，已回退浏览器降噪',
         toggleOn: '开启后语音输入会减去外放的声音',
         toggleOff: '点击重新开启',
+        armedHint: '已开启：点语音输入的麦克风后会自动消除外放回声',
+        noVoiceInputHint: '语音输入插件未生效：请在 Plugins 里启用 Voice input，或升级到与 Harness 相同的 0.2.1-rc.4（详见 docs/manual.md 附录 C）',
       },
       en: {
         title: 'Echo cancel',
         on: 'On — keep the video playing',
         off: 'Off — browser microphone processing only',
         unavailable: 'System audio capture is unavailable here',
-        idle: 'Not recording',
+        idle: 'Checking…',
+        armed: 'On — click the microphone',
+        noVoiceInput: 'Voice input is not ready',
         starting: 'Starting reference audio…',
         ready: 'Reference ready',
         silent: 'Reference silent — is playback audible?',
@@ -52,6 +58,8 @@ window.__ModuleLoader__.load({
         error: 'Echo cancellation failed; using browser processing',
         toggleOn: 'Voice input subtracts loudspeaker audio while on',
         toggleOff: 'Click to turn back on',
+        armedHint: 'On: echo is cancelled whenever voice input records',
+        noVoiceInputHint: 'Voice input plugin is not active: enable Voice input in Plugins, or update it to 0.2.1-rc.4 (see docs/manual.md, appendix C)',
       },
     }
 
@@ -68,6 +76,7 @@ window.__ModuleLoader__.load({
     }
 
     let t = (key) => key
+    let openVoiceInputPlugins
     let statusTimer
 
     function notify () {
@@ -353,14 +362,16 @@ registerProcessor('voiceaec-aec', VoiceAecProcessor)
       if (state.phase === 'recording') return 'recording'
       if (state.error) return 'error'
       if (state.host.running) return state.host.level > -70 ? 'ready' : 'silent'
-      return state.phase === 'starting' ? 'starting' : 'idle'
+      if (state.host.voiceInput === false) return 'noVoiceInput'
+      return state.phase === 'starting' ? 'starting' : 'armed'
     }
 
     function tone (phase) {
       switch (phase) {
         case 'recording':
         case 'ready': return 'var(--dsw-alias-state-success-primary)'
-        case 'silent': return 'var(--dsw-alias-state-warn-primary)'
+        case 'silent':
+        case 'noVoiceInput': return 'var(--dsw-alias-state-warn-primary)'
         case 'error':
         case 'unavailable': return 'var(--dsw-alias-state-error-primary)'
         default: return 'var(--dsw-alias-state-idle-primary)'
@@ -399,6 +410,11 @@ registerProcessor('voiceaec-aec', VoiceAecProcessor)
       const colors = tone(phase)
       const detail = phase === 'recording' ? `${Math.max(0, Math.round(current.erle))} dB` : ''
       const status = phase === 'recording' ? t('recording') : label(phase)
+      const hint = phase === 'noVoiceInput'
+        ? t('noVoiceInputHint')
+        : phase === 'armed'
+          ? t('armedHint')
+          : state.enabled ? t('toggleOn') : t('toggleOff')
       return h('div', {
         style: {
           display: 'flex', alignItems: 'center', gap: '6px', margin: '0 0 0 2px',
@@ -408,8 +424,14 @@ registerProcessor('voiceaec-aec', VoiceAecProcessor)
       },
       h('button', {
         type: 'button',
-        onClick: () => setEnabled(!state.enabled),
-        title: state.enabled ? t('toggleOn') : t('toggleOff'),
+        onClick: () => {
+          if (phase === 'noVoiceInput' && openVoiceInputPlugins) {
+            openVoiceInputPlugins()
+            return
+          }
+          setEnabled(!state.enabled)
+        },
+        title: phase === 'noVoiceInput' ? t('noVoiceInputHint') : hint,
         'aria-pressed': state.enabled,
         style: {
           display: 'inline-flex', alignItems: 'center', gap: '6px',
@@ -442,6 +464,14 @@ registerProcessor('voiceaec-aec', VoiceAecProcessor)
         ctx.effect(() => ctx.locale.subscribe(() => { state.localeTick++; notify() }))
 
         ctx.effect(() => patchMicrophone())
+
+        // Without the official voice-input plugin there is nothing to cancel;
+        // clicking the pill then opens that bundle's page instead of toggling.
+        ctx.inject(['pluginNavigation'], (scope) => {
+          const navigation = scope.pluginNavigation
+          openVoiceInputPlugins = () => navigation?.openBundle?.('@deepseek-ai/dsh-experimental-voice-input-bundle')
+          return () => { openVoiceInputPlugins = undefined }
+        })
 
         ctx.slots.inject('conversation.composer.dock', () => ctx.slots.register({
           name: 'conversation.composer.dock',
