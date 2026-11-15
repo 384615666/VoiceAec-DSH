@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "VoiceAec Echo Cancellation",
+    "description": "Cancel loudspeaker echo during voice input so the video keeps playing."
+  }
+}

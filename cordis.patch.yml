@@ -1,0 +1,7 @@
+# VoiceAec echo cancellation for the voice-input plugin.
+#
+# `device` optionally names the output device whose playback mix becomes the
+# echo reference; omitted, the system default output is used.
+- insert:
+    - id: voiceaec
+      name: dsh-voiceaec

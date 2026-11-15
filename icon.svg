@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="VoiceAec">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2ec489"/>
+      <stop offset="1" stop-color="#1f9fb8"/>
+    </linearGradient>
+    <linearGradient id="mic" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#e8fff5"/>
+    </linearGradient>
+  </defs>
+  <rect x="2" y="2" width="60" height="60" rx="16" fill="url(#bg)"/>
+  <path d="M23 25a9 9 0 0 1 18 0v9a9 9 0 0 1-18 0z" fill="url(#mic)"/>
+  <path d="M18 33a14 14 0 0 0 28 0" fill="none" stroke="#ffffff" stroke-width="3.4" stroke-linecap="round" opacity="0.92"/>
+  <path d="M32 47v6" fill="none" stroke="#ffffff" stroke-width="3.4" stroke-linecap="round" opacity="0.92"/>
+  <g transform="translate(43 21)">
+    <circle r="10" fill="#0f2f2a" opacity="0.32"/>
+    <path d="M-5 -5 5 5M5 -5 -5 5" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round"/>
+  </g>
+</svg>
